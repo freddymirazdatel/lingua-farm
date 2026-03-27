@@ -2,32 +2,30 @@ import flet as ft
 import asyncio
 import random
 
-def main(page: ft.Page):
+# --- BÜTÜN FUNKSİYANI ASYNC EDİRİK ---
+async def main(page: ft.Page):
     # --- SƏHİFƏ AYARLARI ---
     page.title = "Lingua Farm"
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.window_width = 400
-    page.window_height = 800
     page.padding = 0
     page.bgcolor = "#f5f5f5"
 
-    # --- OYUNUN YADDAŞI (STATE) ---
+    # --- OYUNUN YADDAŞI ---
     state = {
         "coins": 100,
         "lives": 3,
-        "exp": 0,          # 100 olanda Level Up
+        "exp": 0,
         "level": 1,
         "current_step": 1,
-        "word_index": 0,   # Step içində neçənci sualdadır (0-dan 9-a qədər)
-        "unlocked_plots": 1, # Başlanğıcda 1 torpaq açıqdır
+        "word_index": 0,
+        "unlocked_plots": 1,
         "sound": True,
         "vibration": True
     }
 
-    # --- SÖZLƏR BAZASI (Nümunə - Bura 200 sözü əlavə edəcəksən) ---
-    # Hər Step-də 10 söz olacaq.
+    # --- SÖZLƏR BAZASI (Tam 20 Step) ---
     DATA = {
-        1: [ # Step 1
+        1: [
             {"word": "APPLE", "correct": "alma", "options": ["alma", "armud", "banan"]},
             {"word": "BOOK", "correct": "kitab", "options": ["kitab", "dəftər", "qələm"]},
             {"word": "WATER", "correct": "su", "options": ["su", "çay", "süd"]},
@@ -38,7 +36,8 @@ def main(page: ft.Page):
             {"word": "TREE", "correct": "ağac", "options": ["ağac", "gül", "kol"]},
             {"word": "FIRE", "correct": "od", "options": ["od", "su", "torpaq"]},
             {"word": "BREAD", "correct": "çörək", "options": ["çörək", "yağ", "pendir"]}
-        ],        2: [ # Step 2
+        ],
+        2: [
             {"word": "CAT", "correct": "pişik", "options": ["pişik", "it", "at"]},
             {"word": "MILK", "correct": "süd", "options": ["süd", "su", "şirə"]},
             {"word": "DOOR", "correct": "qapı", "options": ["qapı", "pəncərə", "divar"]},
@@ -49,7 +48,8 @@ def main(page: ft.Page):
             {"word": "FLOWER", "correct": "gül", "options": ["gül", "ağac", "ot"]},
             {"word": "SHOE", "correct": "ayaqqabı", "options": ["ayaqqabı", "corab", "şalvar"]},
             {"word": "ROAD", "correct": "yol", "options": ["yol", "körpü", "küçə"]}
-        ],        3: [ # Step 3 (Rənglər və Təbiət)
+        ],
+        3: [
             {"word": "RED", "correct": "qırmızı", "options": ["qırmızı", "yaşıl", "mavi"]},
             {"word": "BLUE", "correct": "mavi", "options": ["mavi", "sarı", "qara"]},
             {"word": "GREEN", "correct": "yaşıl", "options": ["yaşıl", "boz", "qırmızı"]},
@@ -61,7 +61,7 @@ def main(page: ft.Page):
             {"word": "RAIN", "correct": "yağış", "options": ["yağış", "qar", "külək"]},
             {"word": "SNOW", "correct": "qar", "options": ["qar", "duman", "dolu"]}
         ],
-        4: [ # Step 4 (Ev və Otaqlar)
+        4: [
             {"word": "BED", "correct": "çarpayı", "options": ["çarpayı", "stul", "masa"]},
             {"word": "CHAIR", "correct": "stul", "options": ["stul", "divan", "kreslo"]},
             {"word": "WINDOW", "correct": "pəncərə", "options": ["pəncərə", "qapı", "dam"]},
@@ -73,7 +73,7 @@ def main(page: ft.Page):
             {"word": "SOAP", "correct": "sabun", "options": ["sabun", "şampun", "dəsmal"]},
             {"word": "MIRROR", "correct": "güzgü", "options": ["güzgü", "daraq", "şüşə"]}
         ],
-        5: [ # Step 5 (Ailə və İnsanlar)
+        5: [
             {"word": "MOTHER", "correct": "ana", "options": ["ana", "bacı", "bibi"]},
             {"word": "FATHER", "correct": "ata", "options": ["ata", "qardaş", "əmi"]},
             {"word": "BROTHER", "correct": "qardaş", "options": ["qardaş", "oğul", "nəvə"]},
@@ -85,19 +85,19 @@ def main(page: ft.Page):
             {"word": "TEACHER", "correct": "müəllim", "options": ["müəllim", "şagird", "həkim"]},
             {"word": "DOCTOR", "correct": "həkim", "options": ["həkim", "polis", "sürücü"]}
         ],
-        6: [ # Step 6 (Bədən Üzvləri)
+        6: [
             {"word": "HEAD", "correct": "baş", "options": ["baş", "əzələ", "sümük"]},
             {"word": "EYE", "correct": "göz", "options": ["göz", "qulaq", "burun"]},
             {"word": "EAR", "correct": "qulaq", "options": ["qulaq", "dil", "diş"]},
             {"word": "NOSE", "correct": "burun", "options": ["burun", "çənə", "alın"]},
-            {"word": "MOUTH", "correct": "ağız", "options": ["ağız", "dodaq", "boğaz"]},
+            {"word": "MOUTH", "correct": "ağiz", "options": ["ağiz", "dodaq", "boğaz"]},
             {"word": "HAND", "correct": "əl", "options": ["əl", "barmaq", "bilək"]},
             {"word": "FOOT", "correct": "ayaq", "options": ["ayaq", "diz", "topuq"]},
             {"word": "HAIR", "correct": "saç", "options": ["saç", "qaş", "kirpik"]},
             {"word": "FACE", "correct": "üz", "options": ["üz", "boyun", "çiyin"]},
             {"word": "HEART", "correct": "ürək", "options": ["ürək", "ağciyər", "mədə"]}
         ],
-        7: [ # Step 7 (Geyim və Əşyalar)
+        7: [
             {"word": "SHIRT", "correct": "köynək", "options": ["köynək", "şalvar", "paltar"]},
             {"word": "PANTS", "correct": "şalvar", "options": ["şalvar", "yubka", "şort"]},
             {"word": "HAT", "correct": "papaq", "options": ["papaq", "şərf", "əlcək"]},
@@ -109,7 +109,7 @@ def main(page: ft.Page):
             {"word": "SPOON", "correct": "qaşıq", "options": ["qaşıq", "boşqab", "stəkan"]},
             {"word": "FORK", "correct": "çəngəl", "options": ["çəngəl", "tava", "qazan"]}
         ],
-        8: [ # Step 8 (Heyvanlar 2)
+        8: [
             {"word": "HORSE", "correct": "at", "options": ["at", "eşşək", "dəvə"]},
             {"word": "COW", "correct": "inək", "options": ["inək", "öküz", "camış"]},
             {"word": "SHEEP", "correct": "qoyun", "options": ["qoyun", "keçi", "quzu"]},
@@ -121,7 +121,7 @@ def main(page: ft.Page):
             {"word": "MONKEY", "correct": "meymun", "options": ["meymun", "fil", "zürafə"]},
             {"word": "ELEPHANT", "correct": "fil", "options": ["fil", "kərgədan", "hippopotam"]}
         ],
-        9: [ # Step 9 (Nəqliyyat və Şəhər)
+        9: [
             {"word": "PLANE", "correct": "təyyarə", "options": ["təyyarə", "helikopter", "raket"]},
             {"word": "SHIP", "correct": "gəmi", "options": ["gəmi", "qayıq", "sualtı"]},
             {"word": "TRAIN", "correct": "qatar", "options": ["qatar", "metro", "tramvay"]},
@@ -133,7 +133,7 @@ def main(page: ft.Page):
             {"word": "CINEMA", "correct": "kino", "options": ["kino", "teatr", "sirk"]},
             {"word": "STATION", "correct": "stansiya", "options": ["stansiya", "dayanacaq", "liman"]}
         ],
-        10: [ # Step 10 (Meyvələr və Tərəvəzlər)
+        10: [
             {"word": "BANANA", "correct": "banan", "options": ["banan", "limon", "ananas"]},
             {"word": "ORANGE", "correct": "portağal", "options": ["portağal", "mandalin", "qreypfrut"]},
             {"word": "GRAPE", "correct": "üzüm", "options": ["üzüm", "gilas", "çiyələk"]},
@@ -145,8 +145,7 @@ def main(page: ft.Page):
             {"word": "TEA", "correct": "çay", "options": ["çay", "qəhvə", "kakao"]},
             {"word": "MEAT", "correct": "ət", "options": ["ət", "toyuq", "balıq"]}
         ],
-  
-          11: [ # Step 11 (Təbiət Hadisələri)
+        11: [
             {"word": "THUNDER", "correct": "ildırım", "options": ["ildırım", "külək", "bulud"]},
             {"word": "WIND", "correct": "külək", "options": ["külək", "günəş", "yağış"]},
             {"word": "CLOUD", "correct": "bulud", "options": ["bulud", "ulduz", "duman"]},
@@ -158,7 +157,7 @@ def main(page: ft.Page):
             {"word": "MOUNTAIN", "correct": "dağ", "options": ["dağ", "təpə", "dərə"]},
             {"word": "ISLAND", "correct": "ada", "options": ["ada", "qitə", "ölkə"]}
         ],
-        12: [ # Step 12 (Zaman və Təqvim)
+        12: [
             {"word": "MORNING", "correct": "səhər", "options": ["səhər", "günorta", "axşam"]},
             {"word": "AFTERNOON", "correct": "günorta", "options": ["günorta", "gecə", "səhər"]},
             {"word": "EVENING", "correct": "axşam", "options": ["axşam", "səhər", "gecə"]},
@@ -170,7 +169,7 @@ def main(page: ft.Page):
             {"word": "YESTERDAY", "correct": "dünən", "options": ["dünən", "bu gün", "sabah"]},
             {"word": "TOMORROW", "correct": "sabah", "options": ["sabah", "dünən", "bu gün"]}
         ],
-        13: [ # Step 13 (Məktəb və Təhsil)
+        13: [
             {"word": "STUDENT", "correct": "şagird", "options": ["şagird", "müəllim", "direktor"]},
             {"word": "PAPER", "correct": "kağız", "options": ["kağız", "qələm", "kitab"]},
             {"word": "PENCIL", "correct": "karandaş", "options": ["karandaş", "rəng", "fırça"]},
@@ -182,7 +181,7 @@ def main(page: ft.Page):
             {"word": "QUESTION", "correct": "sual", "options": ["sual", "cavab", "səhv"]},
             {"word": "ANSWER", "correct": "cavab", "options": ["cavab", "sual", "düz"]}
         ],
-        14: [ # Step 14 (Hisslər və Emosiyalar)
+        14: [
             {"word": "HAPPY", "correct": "xoşbəxt", "options": ["xoşbəxt", "qəmli", "əsəbi"]},
             {"word": "SAD", "correct": "qəmli", "options": ["qəmli", "şən", "qorxmuş"]},
             {"word": "ANGRY", "correct": "əsəbi", "options": ["əsəbi", "sakit", "yorğun"]},
@@ -194,7 +193,7 @@ def main(page: ft.Page):
             {"word": "FUNNY", "correct": "məzəli", "options": ["məzəli", "ciddi", "maraqlı"]},
             {"word": "QUICK", "correct": "sürətli", "options": ["sürətli", "yavaş", "ağır"]}
         ],
-        15: [ # Step 15 (İş və Peşələr 2)
+        15: [
             {"word": "POLICE", "correct": "polis", "options": ["polis", "əsgər", "yanğınsöndürən"]},
             {"word": "CHEF", "correct": "aşpaz", "options": ["aşpaz", "ofisiant", "satıcı"]},
             {"word": "PILOT", "correct": "pilot", "options": ["pilot", "kaptan", "sürücü"]},
@@ -206,7 +205,7 @@ def main(page: ft.Page):
             {"word": "MANAGER", "correct": "menecer", "options": ["menecer", "direktor", "katib"]},
             {"word": "BARRISTER", "correct": "vəkil", "options": ["vəkil", "hakim", "jurnalist"]}
         ],
-        16: [ # Step 16 (Hərəkətlər / Feillər 1)
+        16: [
             {"word": "EAT", "correct": "yemək", "options": ["yemək", "içmək", "yatmaq"]},
             {"word": "DRINK", "correct": "içmək", "options": ["içmək", "yemək", "bişirmək"]},
             {"word": "SLEEP", "correct": "yatmaq", "options": ["yatmaq", "oyanmaq", "durmaq"]},
@@ -218,7 +217,7 @@ def main(page: ft.Page):
             {"word": "LISTEN", "correct": "dinləmək", "options": ["dinləmək", "baxmaq", "görmək"]},
             {"word": "LOOK", "correct": "baxmaq", "options": ["baxmaq", "eşitmək", "toxunmaq"]}
         ],
-        17: [ # Step 17 (Hərəkətlər / Feillər 2)
+        17: [
             {"word": "OPEN", "correct": "açmaq", "options": ["açmaq", "bağlamaq", "vurmaq"]},
             {"word": "CLOSE", "correct": "bağlamaq", "options": ["bağlamaq", "açmaq", "itələmək"]},
             {"word": "GIVE", "correct": "vermək", "options": ["vermək", "almaq", "tutmaq"]},
@@ -230,7 +229,7 @@ def main(page: ft.Page):
             {"word": "LAUGH", "correct": "gülmək", "options": ["gülmək", "ağlamaq", "təbəssüm"]},
             {"word": "CRY", "correct": "ağlamaq", "options": ["ağlamaq", "gülmək", "qışqırmaq"]}
         ],
-        18: [ # Step 18 (Sifətlər / Təsvirlər)
+        18: [
             {"word": "BIG", "correct": "böyük", "options": ["böyük", "kiçik", "orta"]},
             {"word": "SMALL", "correct": "kiçik", "options": ["kiçik", "böyük", "nəhəng"]},
             {"word": "TALL", "correct": "hündür", "options": ["hündür", "alçaq", "qısa"]},
@@ -242,7 +241,7 @@ def main(page: ft.Page):
             {"word": "FAST", "correct": "sürətli", "options": ["sürətli", "yavaş", "sakit"]},
             {"word": "SLOW", "correct": "yavaş", "options": ["yavaş", "iti", "cəld"]}
         ],
-        19: [ # Step 19 (Mətbəx və Qidalanma 2)
+        19: [
             {"word": "BOWL", "correct": "kasa", "options": ["kasa", "boşqab", "stəkan"]},
             {"word": "PLATE", "correct": "boşqab", "options": ["boşqab", "qaşıq", "tava"]},
             {"word": "CUP", "correct": "fincan", "options": ["fincan", "şüşə", "qazan"]},
@@ -254,7 +253,7 @@ def main(page: ft.Page):
             {"word": "FRUIT", "correct": "meyvə", "options": ["meyvə", "tərəvəz", "göyərti"]},
             {"word": "VEGETABLE", "correct": "tərəvəz", "options": ["tərəvəz", "meyvə", "ət"]}
         ],
-        20: [ # Step 20 (Yekun və Qarışıq)
+        20: [
             {"word": "MONEY", "correct": "pul", "options": ["pul", "qızıl", "gümüş"]},
             {"word": "GIFT", "correct": "hədiyyə", "options": ["hədiyyə", "qutu", "bağlama"]},
             {"word": "WORLD", "correct": "dünya", "options": ["dünya", "ölkə", "şəhər"]},
@@ -265,17 +264,10 @@ def main(page: ft.Page):
             {"word": "HELP", "correct": "kömək", "options": ["kömək", "ziyan", "xeyir"]},
             {"word": "WORK", "correct": "iş", "options": ["iş", "istirahət", "əyləncə"]},
             {"word": "GAME", "correct": "oyun", "options": ["oyun", "dərs", "məşq"]}
-        ],
-  
-        # Step 2, 3, 4... bura əlavə edəcəksən
+        ]
     }
 
-    # Əgər bazada step yoxdursa, xəta verməsin deyə dummy data (test üçün)
-    for i in range(2, 21):
-        if i not in DATA:
-            DATA[i] = [{"word": f"WORD {i}-{j}", "correct": "düz", "options": ["düz", "səhv1", "səhv2"]} for j in range(10)]
-
-    # --- ÜST PANEL (Status Bar: Level, EXP, Lives, Coins) ---
+    # --- ÜST PANEL ---
     top_bar = ft.Container(
         content=ft.Row([
             ft.Text(f"Lv. {state['level']}", weight="bold", size=16, color="green800"),
@@ -289,209 +281,4 @@ def main(page: ft.Page):
     )
 
     def update_top_bar():
-        top_bar.content.controls[0].value = f"Lv. {state['level']}"
-        top_bar.content.controls[1].value = state["exp"] / 100
-        top_bar.content.controls[2].controls[0].value = f"❤️ {state['lives']}"
-        top_bar.content.controls[2].controls[1].value = f"💰 {state['coins']}"
-        page.update()
-
-    # --- 1. SPLASH SCREEN (Açılış Ekranı) ---
-    async def show_splash():
-        page.controls.clear()
-        splash = ft.Container(
-            content=ft.Column([
-                ft.Icon(ft.icons.AGRICULTURE, size=120, color="#7db343"),
-                ft.Text("LINGUA FARM", size=36, weight="bold", color="#5d4037"),
-                ft.Text("Oynayaraq Öyrən", size=16, italic=True, color="grey"),
-                ft.Divider(height=30, color="transparent"),
-                ft.ProgressBar(width=200, color="#7db343", bgcolor="#eeeeee"),
-                ft.Text("Yüklənir...", size=14, color="grey")
-            ], alignment="center", horizontal_alignment="center"),
-            expand=True, bgcolor="#fdfdfd"
-        )
-        page.add(splash)
-        await asyncio.sleep(2.5) # Yüklənmə effekti
-        show_main_menu()
-
-    # --- 2. ANA MENYU ---
-    def show_main_menu():
-        page.controls.clear()
-        page.bgcolor = "#e8f5e9" # Açıq yaşıl fon
-        
-        menu_col = ft.Column([
-            ft.Text("ANA MENYU", size=30, weight="bold", color="#2e7d32"),
-            ft.Divider(height=20, color="transparent"),
-            menu_btn("Mənim Bağım", ft.icons.GRASS, "#7db343", show_farm),
-            menu_btn("Yeni Sözlər", ft.icons.SCHOOL, "#ff9800", start_game),
-            menu_btn("Təkrarlama", ft.icons.AUTORENEW, "#2196f3", lambda: None),
-            menu_btn("Ayarlar", ft.icons.SETTINGS, "#757575", show_settings),
-            ft.Divider(height=10),
-            menu_btn("Çıxış", ft.icons.EXIT_TO_APP, "#d32f2f", lambda: page.window_destroy()),
-        ], horizontal_alignment="center", spacing=15)
-        
-        page.add(top_bar, ft.Container(content=menu_col, padding=40, alignment=ft.alignment.center))
-        update_top_bar()
-
-    def menu_btn(text, icon, color, action):
-        return ft.ElevatedButton(
-            content=ft.Row([ft.Icon(icon, color="white"), ft.Text(text, size=18, weight="bold")], alignment="center"),
-            style=ft.ButtonStyle(color="white", bgcolor=color, shape=ft.RoundedRectangleBorder(radius=15)),
-            width=280, height=55, on_click=lambda _: action()
-        )
-
-    # --- 3. MƏNİM BAĞIM (Hay Day Stili Ferma) ---
-    def show_farm():
-        page.controls.clear()
-        page.bgcolor = "#aed581"
-        
-        grid = ft.GridView(expand=True, runs_count=3, max_extent=110, spacing=10, run_spacing=10)
-        for i in range(1, 10):
-            is_unlocked = i <= state["unlocked_plots"]
-            grid.controls.append(
-                ft.Container(
-                    content=ft.Icon(ft.icons.LOCK if not is_unlocked else ft.icons.LOCAL_FLORIST, color="white" if not is_unlocked else "pink"),
-                    bgcolor="#8d6e63" if is_unlocked else "#5d4037",
-                    border_radius=10, alignment=ft.alignment.center,
-                    border=ft.border.all(2, "white30")
-                )
-            )
-
-        back_btn = ft.IconButton(ft.icons.ARROW_BACK, icon_color="white", on_click=lambda _: show_main_menu())
-        
-        page.add(
-            top_bar,
-            ft.Row([back_btn, ft.Text("Mənim Bağım", size=24, weight="bold", color="white")], alignment="start"),
-            ft.Container(content=grid, width=350, height=350, padding=20)
-        )
-
-    # --- 4. OYUN MEXANİKASI (Yeni Sözlər) ---
-    def start_game():
-        if state["lives"] <= 0:
-            state["lives"] = 3 # Oyuna təzə girəndə 3 can hədiyyə!
-        load_question()
-
-    def load_question():
-        page.controls.clear()
-        page.bgcolor = "#f5f5f5"
-        
-        current_data = DATA[state["current_step"]]
-        word_info = current_data[state["word_index"]]
-        
-        word_display = ft.Text(word_info["word"], size=45, weight="bold", color="#333333")
-        step_info = ft.Text(f"Step {state['current_step']} - Sual {state['word_index']+1}/10", color="grey")
-        
-        options_col = ft.Column(spacing=15, horizontal_alignment="center")
-        
-        choices = word_info["options"].copy()
-        random.shuffle(choices)
-        
-        for option in choices:
-            btn = ft.ElevatedButton(
-                text=option,
-                width=280, height=60,
-                style=ft.ButtonStyle(
-                    color="black87", bgcolor="white",
-                    shape=ft.RoundedRectangleBorder(radius=12),
-                ),
-                on_click=lambda e, opt=option, corr=word_info["correct"]: check_answer(opt, corr)
-            )
-            options_col.controls.append(btn)
-
-        back_btn = ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: show_main_menu())
-
-        page.add(
-            top_bar,
-            ft.Row([back_btn], alignment="start"),
-            ft.Container(
-                content=ft.Column([step_info, word_display, ft.Divider(height=40, color="transparent"), options_col], horizontal_alignment="center"),
-                padding=20, alignment=ft.alignment.center, expand=True
-            )
-        )
-        update_top_bar()
-
-    # --- 5. CAVABIN YOXLANIŞI VƏ CAN SİSTEMİ ---
-    def check_answer(selected, correct):
-        if selected == correct:
-            # DÜZGÜN CAVAB
-            state["coins"] += 2
-            state["exp"] += 1
-            if state["exp"] >= 100:
-                state["exp"] = 0
-                state["level"] += 1
-                page.snack_bar = ft.SnackBar(ft.Text("TƏBRİKLƏR! LEVEL UP! 🎉", color="white"), bgcolor="green")
-                page.snack_bar.open = True
-            
-            state["word_index"] += 1
-            
-            # Step bitdimi? (10 sual)
-            if state["word_index"] >= 10:
-                state["word_index"] = 0
-                state["current_step"] += 1
-                state["unlocked_plots"] += 1 # Yeni torpaq açılır
-                page.snack_bar = ft.SnackBar(ft.Text("Step Tamamlandı! Yeni Torpaq Açıldı! 🚜", color="white"), bgcolor="blue")
-                page.snack_bar.open = True
-                show_main_menu()
-            else:
-                load_question()
-        else:
-            # SƏHV CAVAB (Hardcore)
-            state["lives"] -= 1
-            if state["lives"] <= 0:
-                show_death_popup() # Can bitdi, mağaza gəlir
-            else:
-                page.snack_bar = ft.SnackBar(ft.Text("Səhv! 1 Can getdi 💔", color="white"), bgcolor="red")
-                page.snack_bar.open = True
-                update_top_bar()
-                # Sualı dəyişmədən eyni sualda saxlayırıq ki, düzünü tapsın
-
-    # --- 6. ÖLÜM EKRANI (Can Satışı) ---
-    def show_death_popup():
-        def buy_life(lives_to_buy, price):
-            if state["coins"] >= price:
-                state["coins"] -= price
-                state["lives"] += lives_to_buy
-                page.close(dlg)
-                update_top_bar()
-                load_question() # Qaldığı yerdən davam edir
-            else:
-                page.snack_bar = ft.SnackBar(ft.Text("Pulun çatmır! 💰", color="white"), bgcolor="red")
-                page.snack_bar.open = True
-                page.update()
-
-        def restart_step():
-            state["lives"] = 3 # Yenidən 3 can veririk
-            state["word_index"] = 0 # 1-ci suala qayıdırıq
-            page.close(dlg)
-            load_question()
-
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Məğlub Oldun! 💔", color="red", weight="bold"),
-            content=ft.Column([
-                ft.Text("Qaldığın yerdən davam etmək üçün can al:"),
-                ft.ElevatedButton("1 Can ❤️ - 10 💰", on_click=lambda _: buy_life(1, 10), bgcolor="green50"),
-                ft.ElevatedButton("3 Can ❤️❤️❤️ - 25 💰", on_click=lambda _: buy_life(3, 25), bgcolor="blue50"),
-                ft.ElevatedButton("5 Can ❤️❤️❤️❤️❤️ - 40 💰", on_click=lambda _: buy_life(5, 40), bgcolor="purple50"),
-                ft.Divider(),
-                ft.TextButton("İmtina et (Step-in əvvəlinə qayıt)", on_click=lambda _: restart_step(), style=ft.ButtonStyle(color="red"))
-            ], tight=True, spacing=10),
-        )
-        page.open(dlg)
-
-    # --- 7. AYARLAR MENYUSU ---
-    def show_settings():
-        dlg = ft.AlertDialog(
-            title=ft.Text("Ayarlar"),
-            content=ft.Column([
-                ft.Switch(label="Səs", value=state["sound"], on_change=lambda e: state.update({"sound": e.control.value})),
-                ft.Switch(label="Vibrasiya", value=state["vibration"], on_change=lambda e: state.update({"vibration": e.control.value})),
-            ], tight=True),
-            actions=[ft.TextButton("Bağla", on_click=lambda e: page.close(dlg))]
-        )
-        page.open(dlg)
-
-    # OYUNU BAŞLAT
-    asyncio.run(show_splash())
-
-ft.app(target=main)
-  
+        top_bar.content.controls
